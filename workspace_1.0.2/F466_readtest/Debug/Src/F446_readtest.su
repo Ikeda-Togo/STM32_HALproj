@@ -1,0 +1,7 @@
+F446_readtest.c:70:5:main	344	static
+F446_readtest.c:146:10:read	24	static
+F446_readtest.c:262:6:SystemClock_Config	88	static
+F446_readtest.c:301:13:MX_USART2_UART_Init	8	static
+F446_readtest.c:334:13:MX_USART6_UART_Init	8	static
+F446_readtest.c:367:13:MX_GPIO_Init	40	static
+F446_readtest.c:395:6:Error_Handler	4	static

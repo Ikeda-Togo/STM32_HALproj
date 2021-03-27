@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.st.stm32cube.ide.mcu.debug.launch.launchConfigurationType">
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.enable_live_expr" value="true"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.enable_swv" value="false"/>
+<intAttribute key="com.st.stm32cube.ide.mcu.debug.launch.formatVersion" value="2"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.remoteCommand" value="target remote"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.startServer" value="true"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swd_mode" value="true"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_port" value="61235"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_div" value="8"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_trace_hclk" value="16000000"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.swv_wait_for_sync" value="true"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.useRemoteTarget" value="true"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.launch.verify_flash_download" value="true"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.enable_logging" value="false"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.external_loader" value=""/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.log_file" value="C:\Users\syuug\STM32CubeIDE\workspace_1.0.2\FreeNucleo\Debug\st-link_gdbserver_log.txt"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_ap_id" value="0"/>
+<booleanAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_check_serial_number" value="false"/>
+<stringAttribute key="com.st.stm32cube.ide.mcu.debug.stlink.stlink_txt_serial_number" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.ipAddress" value="localhost"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.jtagDevice" value="ST-LINK (ST-LINK GDB server)"/>
+<intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.portNumber" value="61234"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/FreeNucleo.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="FreeNucleo"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/FreeNucleo"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
+</launchConfiguration>

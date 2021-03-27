@@ -1,0 +1,6 @@
+F446_spi.c:71:5:main	304	static
+F446_spi.c:130:6:SystemClock_Config	88	static
+F446_spi.c:169:13:MX_SPI1_Init	8	static
+F446_spi.c:206:13:MX_USART2_UART_Init	8	static
+F446_spi.c:239:13:MX_GPIO_Init	16	static
+F446_spi.c:255:6:Error_Handler	4	static

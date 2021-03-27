@@ -1,0 +1,9 @@
+F466RE.c:73:5:main	368	static
+F466RE.c:124:10:pos	40	static
+F466RE.c:147:10:write	32	static
+F466RE.c:262:6:SystemClock_Config	88	static
+F466RE.c:301:13:MX_SPI1_Init	8	static
+F466RE.c:338:13:MX_USART2_UART_Init	8	static
+F466RE.c:371:13:MX_USART6_UART_Init	8	static
+F466RE.c:404:13:MX_GPIO_Init	40	static
+F466RE.c:432:6:Error_Handler	4	static

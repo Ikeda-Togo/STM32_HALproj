@@ -1,0 +1,5 @@
+Master_F303.c:68:5:main	40	static
+Master_F303.c:120:6:SystemClock_Config	72	static
+Master_F303.c:155:13:MX_SPI1_Init	8	static
+Master_F303.c:195:13:MX_GPIO_Init	32	static
+Master_F303.c:222:6:Error_Handler	4	static
