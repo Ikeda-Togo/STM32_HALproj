@@ -96,10 +96,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   char txbuf[30]={0};
    uint16_t value=0;
-   short duty;
+   short duty=1;
 
    HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
-//   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
 
   /* USER CODE END 2 */
 
@@ -111,12 +111,17 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  duty=8;
+	  duty++;
+	  if(duty >255){
+		  duty=0;
+	  }
 	 __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	 __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2,duty);
 	 HAL_Delay(1000);
-     duty=32;
-      __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-       HAL_Delay(1000);
+//     duty=32;
+//      __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//      __HAL_TIM_SET_COMPARE(&htim2,TIM_CHANNEL_2,50);
+//      HAL_Delay(1000);
 
   }
   /* USER CODE END 3 */
