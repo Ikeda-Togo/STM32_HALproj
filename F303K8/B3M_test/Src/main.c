@@ -106,6 +106,8 @@ int main(void)
       unsigned char time_h = (unsigned char)(time>>8)&0x00FF;
       unsigned char sum = (0x09+0x06+id+deg_l+deg_h+time_l+time_h)&0x00FF;
 
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+
       txdata[0]=0x09;   //1 SIZE
       txdata[1]=0x06;   //2 COMMAND
       txdata[2]=0x00;   //3 OPTION
@@ -115,9 +117,33 @@ int main(void)
       txdata[6]=time_l; //7 TIME_L
       txdata[7]=time_h; //8 TIME_H
       txdata[8]=sum;    //9 SUM
-      HAL_Delay(0.03);
 
+
+  	  HAL_UART_Transmit(&huart1, txdata, 9, 0xFFFF);
+      HAL_Delay(0.03);
+      HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
   }
+    void speed(unsigned char id,short speed)
+    {
+        unsigned char speed_l = (unsigned char)(speed)&0x00FF;
+        unsigned char speed_h = (unsigned char)(speed>>8)&0x00FF;
+        unsigned char sum = (0x09+0x04+0x00+id+speed_l+speed_h+0x30+0x01)&0x00FF;
+
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
+
+        txdata[0]=0x09;//SIZE
+        txdata[1]=0x04;//COMMAND
+        txdata[2]=0x00;//OPTION
+        txdata[3]=id;//ID
+        txdata[4]=speed_l;//SPEED_LOWBYTE
+        txdata[5]=speed_h;//SPEED_HIGHBYTE
+        txdata[6]=0x30;//ADRESS(SPEED 0x03)
+        txdata[7]=0x01;//COUNT
+        txdata[8]=sum;//SUM
+    	HAL_UART_Transmit(&huart1, txdata, 9, 0xFFFF);
+        HAL_Delay(0.03);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
+    }
 
     void write(unsigned char id,unsigned char data,unsigned char adress)
     {
@@ -153,30 +179,26 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  //制御モード指�?
 	  	  write(0xFF,0x00,0x28);
 	  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
 	  	  HAL_Delay(1000);
-	  //軌道生�?�タイプ１：時間制御
 	  	  write(0xFF,0x01,0x29);
-	  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
+	  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
 	  	  HAL_Delay(1000);
 
+	  	//pos test
 	  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 1);
 	  	  pos(0x01,6000,1000);
-	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
-	  	  HAL_UART_Transmit(&huart1, txdata, 9, 0xFFFF);
-	  	  HAL_Delay(0.03);
-	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
 	  	  HAL_Delay(1000);
 
 	  	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, 0);
 	  	  pos(0x01,0,1000);
-	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 1);
-	  	  HAL_UART_Transmit(&huart1, txdata,9, 0xFFFF);
-	  	  HAL_Delay(0.03);
-	  	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, 0);
 	  	  HAL_Delay(1000);
+
+	  	//speed test
+	  	  write(0x01,0x04,0x28);
+	  	  speed(1,15000);
+	  	  HAL_Delay(10000);
 
   }
   /* USER CODE END 3 */
