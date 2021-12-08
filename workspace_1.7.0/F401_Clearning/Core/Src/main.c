@@ -65,6 +65,12 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN 0 */
 uint8_t stop;
 
+void delay_us (uint32_t us)
+{
+	__HAL_TIM_SET_COUNTER(&htim2,0);  // set the counter value a 0
+	while (__HAL_TIM_GET_COUNTER(&htim2) < us);  // wait for the counter to reach the us input in the parameter
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == GPIO_PIN_0)
@@ -125,12 +131,67 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
-  HAL_TIM_Base_Start(&htim2);
+  HAL_TIM_Base_Start_IT(&htim2);
+//  HAL_TIM_Base_Start(&htim2);
 
-  void delay_us (uint32_t us)
-  {
-  	__HAL_TIM_SET_COUNTER(&htim2,0);  // set the counter value a 0
-  	while (__HAL_TIM_GET_COUNTER(&htim2) < us);  // wait for the counter to reach the us input in the parameter
+  void init_motion(){
+	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 0);
+	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
+	  {
+	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
+	    while(1){
+		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+//		  HAL_Delay(0.4);
+		  delay_us(400);
+		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+//		  HAL_Delay(0.01);
+		  delay_us(100);
+		  if(stop == 1){
+			  break;
+		  }
+	    }
+	  }
+	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
+	  for(int i=0;i<200;i++){
+		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+	  	  HAL_Delay(1);
+	  	  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+	  	  HAL_Delay(1);
+	  }
+	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 1);
+
+
+  }
+
+  void sonic_sense(){
+	  GPIO_InitTypeDef GPIO_InitStruct;
+
+	  GPIO_InitStruct.Pin = GPIO_PIN_1;
+	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, 0);
+	  delay_us(2);
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, 1);
+	  delay_us(5);
+	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, 0);
+
+	  GPIO_InitStruct.Pin = GPIO_PIN_1;
+	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT; // digital Input
+	  GPIO_InitStruct.Pull = GPIO_NOPULL;
+	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	  while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_1) == GPIO_PIN_RESET);
+
+	  __HAL_TIM_SET_COUNTER(&htim2,0);
+	  while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_1) == GPIO_PIN_SET);
+	  int counter = __HAL_TIM_GET_COUNTER(&htim2);
+
+	  printf("sonic_sensor count %d",counter);
+	  HAL_Delay(0.03);
+
   }
 
     void pos(unsigned char id,short deg,unsigned short time)
@@ -204,6 +265,8 @@ int main(void)
   	  write(0xFF,0x01,0x29);
   	  speed(0xFF,15000);
 
+  	init_motion();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -213,50 +276,58 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  while(1){
-		  if(count % 1000 == 0){
-			  printf("test_us\r\n");
 
-		  }
-		  delay_us(1000);
-		  count++;
-	  }
+/*------------------sonic_sense test------------------------*/
 
-	  duty=10;
+//	  while(1){
+//		  if(count % 100 == 0){
+//			  sonic_sense();
+//			  printf("test_us\r\n");
+//
+//		  }
+//		  delay_us(1000);
+//		  count++;
+//	  }
+
+
+/*-----------------------Servo test---------------------------*/
+
+	  duty=12;
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
 	  HAL_Delay(1000);
 
-	  duty=25;
+	  duty=21;
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
 	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
 	  HAL_Delay(1000);
 
-	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
-	  {
-	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
+/*-----------------------stepping test-------------------------*/
 
-	    while(1){
-	    	HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
-	    	HAL_Delay(4);
-	    	HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
-	    	HAL_Delay(1);
-	    	if(stop == 1){
-			  break;
-		  }
-	    }
-	  }
-	  if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
-	  {
-	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
-		  for (int i=0; i<100; i++) {
-
-			  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
-			  HAL_Delay(4);
-			  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
-			  HAL_Delay(1);
-		  }
-	  }
+//	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
+//	  {
+//	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
+//
+//	    while(1){
+//	    	HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+//	    	HAL_Delay(4);
+//	    	HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+//	    	HAL_Delay(1);
+//	    	if(stop == 1){
+//			  break;
+//		  }
+//	    }
+//	  }
+//	  if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
+//	  {
+//	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
+//		  for (int i=0; i<100; i++) {
+//			  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+//			  HAL_Delay(4);
+//			  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+//			  HAL_Delay(1);
+//		  }
+//	  }
 
 
 
@@ -514,7 +585,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|Step_Pin|DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|LD2_Pin|Step_Pin|DIR_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
@@ -531,12 +605,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin Step_Pin DIR_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|Step_Pin|DIR_Pin;
+  /*Configure GPIO pins : PA1 LD2_Pin Step_Pin DIR_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|LD2_Pin|Step_Pin|DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : EN_step_Pin */
+  GPIO_InitStruct.Pin = EN_step_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(EN_step_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB2 */
   GPIO_InitStruct.Pin = GPIO_PIN_2;
