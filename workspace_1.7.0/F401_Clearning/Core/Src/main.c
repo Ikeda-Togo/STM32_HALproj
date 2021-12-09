@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,13 +79,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
     {
 //      HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
-      printf("on\r\n");
+      printf("off\r\n");
       stop=0;
     }
     else if(!HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
     {
 //      HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
-      printf("off\r\n");
+      printf("on\r\n");
       stop=1;
     }
   }
@@ -127,7 +128,9 @@ int main(void)
   printf("start\r\n");
   uint8_t txdata[9] = {0};
   short duty=10;
-  int count = 0;
+  int out_range_count = 0;
+  int in_range_count = 0;
+  bool clearning_handler= false;
 
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
@@ -135,23 +138,24 @@ int main(void)
 //  HAL_TIM_Base_Start(&htim2);
 
   void init_motion(){
+	  printf("init motion...\r\n");
 	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 0);
 	  if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
 	  {
-	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
+	    HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
 	    while(1){
 		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
 //		  HAL_Delay(0.4);
-		  delay_us(400);
+		  delay_us(800);
 		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
 //		  HAL_Delay(0.01);
-		  delay_us(100);
+		  delay_us(200);
 		  if(stop == 1){
 			  break;
 		  }
 	    }
 	  }
-	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
+	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
 	  for(int i=0;i<200;i++){
 		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
 	  	  HAL_Delay(1);
@@ -163,7 +167,7 @@ int main(void)
 
   }
 
-  void sonic_sense(){
+  int sonic_sense(){
 	  GPIO_InitTypeDef GPIO_InitStruct;
 
 	  GPIO_InitStruct.Pin = GPIO_PIN_1;
@@ -188,9 +192,9 @@ int main(void)
 	  __HAL_TIM_SET_COUNTER(&htim2,0);
 	  while(HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_1) == GPIO_PIN_SET);
 	  int counter = __HAL_TIM_GET_COUNTER(&htim2);
+	  delay_us(500);
 
-	  printf("sonic_sensor count %d",counter);
-	  HAL_Delay(0.03);
+	  return(counter);
 
   }
 
@@ -261,9 +265,50 @@ int main(void)
 
     }
 
-  	  write(0xFF,0x04,0x28);
-  	  write(0xFF,0x01,0x29);
-  	  speed(0xFF,15000);
+    void clearning_motion(){
+
+      printf("clearning motion...\r\n");
+      write(0xFF,0x04,0x28);
+      write(0xFF,0x01,0x29);
+   	  speed(0xFF,15000);
+  	  HAL_Delay(1000);
+  	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 0);
+  	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
+
+  	  //往復ステップ数
+  	  for(int i=0;i<10000;i++){
+  		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+  		  delay_us(400);
+  	  	  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+  	  	  delay_us(400);
+  	  }
+  	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
+  	  for(int i=0;i<10000;i++){
+  		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
+  		  delay_us(400);
+  	  	  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
+  	  	  delay_us(400);
+  	  	  if (stop ==1){
+  	  		  break;
+  	  	  }
+  	  }
+  	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 1);
+
+  	  duty=12;
+  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+  	  HAL_Delay(1000);
+
+  	  duty=21;
+  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+  	  HAL_Delay(1000);
+
+    }
+
+//  	  write(0xFF,0x04,0x28);
+//  	  write(0xFF,0x01,0x29);
+//  	  speed(0xFF,15000);
 
   	init_motion();
 
@@ -279,28 +324,42 @@ int main(void)
 
 /*------------------sonic_sense test------------------------*/
 
-//	  while(1){
-//		  if(count % 100 == 0){
-//			  sonic_sense();
-//			  printf("test_us\r\n");
-//
-//		  }
-//		  delay_us(1000);
-//		  count++;
-//	  }
+	  while(1){
+		  int distance = sonic_sense();
+		  printf("distance=%d\r\n",distance);
+		  HAL_Delay(500);
+
+		  if(distance>5000){         //いない時間の計測
+			  out_range_count++;
+			  in_range_count=0;
+		  }
+		  else{                     //いる時間の計測
+			  out_range_count=0;
+			  in_range_count++;
+			  if (in_range_count>10){ //滞在時間の設定
+				  clearning_handler= true;
+			  }
+		  }
+
+		  if(clearning_handler== true && out_range_count > 5){ //いない時間の設定
+			  clearning_motion();
+			  init_motion();
+			  clearning_handler= false;
+		  }
+	  }
 
 
 /*-----------------------Servo test---------------------------*/
 
-	  duty=12;
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
-	  HAL_Delay(1000);
-
-	  duty=21;
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
-	  HAL_Delay(1000);
+//	  duty=12;
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//	  HAL_Delay(1000);
+//
+//	  duty=21;
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//	  HAL_Delay(1000);
 
 /*-----------------------stepping test-------------------------*/
 
