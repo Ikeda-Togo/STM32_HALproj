@@ -43,6 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
@@ -58,6 +59,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -124,6 +126,7 @@ int main(void)
   MX_USART6_UART_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   printf("start\r\n");
   uint8_t txdata[9] = {0};
@@ -134,6 +137,8 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_2);
   HAL_TIM_Base_Start_IT(&htim2);
 //  HAL_TIM_Base_Start(&htim2);
 
@@ -265,17 +270,70 @@ int main(void)
 
     }
 
+    void alcohol_motion(){
+  	  write(0x04,0x00,0x28);
+  	  write(0x04,0x01,0x29);
+  	  //水平に調整
+  	  pos(0x04,0,1000);
+  	  HAL_Delay(1000);
+
+  	  //右のアクリル噴�?
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,12);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(1000);
+
+  	  //左アクリルの噴�?
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,24);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(1000);
+
+  	  //机に噴�?
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,18);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(1000);
+
+  	  //中央アクリルに噴�?
+  	  pos(0x04,6000,1000);
+  	  HAL_Delay(1000);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+
+  	  //初期位置に戻�?
+  	  pos(0x04,-9000,1000);
+  	  HAL_Delay(1000);
+
+
+    }
+
     void clearning_motion(){
 
       printf("clearning motion...\r\n");
-      write(0xFF,0x04,0x28);
+      write(0x01,0x04,0x28);
+      write(0x02,0x04,0x28);
+      write(0x03,0x04,0x28);
       write(0xFF,0x01,0x29);
-   	  speed(0xFF,15000);
+
+      //モップ回転
+   	  speed(0x01,15000);
+   	  speed(0x02,15000);
+   	  speed(0x03,-15000);
+
   	  HAL_Delay(1000);
+
   	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 0);
   	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
 
-  	  //往復ステップ数
+  	  //??��?��?復ス??��?��???��?��?プ数
   	  for(int i=0;i<10000;i++){
   		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
   		  delay_us(400);
@@ -294,6 +352,10 @@ int main(void)
   	  }
   	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 1);
 
+  	  //回転ストップ
+  	  speed(0xFF,0);
+
+  	  //机ふきふき
   	  duty=12;
   	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
   	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
@@ -310,7 +372,7 @@ int main(void)
 //  	  write(0xFF,0x01,0x29);
 //  	  speed(0xFF,15000);
 
-  	init_motion();
+//  	init_motion();
 
   /* USER CODE END 2 */
 
@@ -321,32 +383,34 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  alcohol_motion();
+
 
 /*------------------sonic_sense test------------------------*/
 
-	  while(1){
-		  int distance = sonic_sense();
-		  printf("distance=%d\r\n",distance);
-		  HAL_Delay(500);
-
-		  if(distance>5000){         //いない時間の計測
-			  out_range_count++;
-			  in_range_count=0;
-		  }
-		  else{                     //いる時間の計測
-			  out_range_count=0;
-			  in_range_count++;
-			  if (in_range_count>10){ //滞在時間の設定
-				  clearning_handler= true;
-			  }
-		  }
-
-		  if(clearning_handler== true && out_range_count > 5){ //いない時間の設定
-			  clearning_motion();
-			  init_motion();
-			  clearning_handler= false;
-		  }
-	  }
+//	  while(1){
+//		  int distance = sonic_sense();
+//		  printf("distance=%d\r\n",distance);
+//		  HAL_Delay(500);
+//
+//		  if(distance>5000){         //??��?��?な??��?��?時間の計測
+//			  out_range_count++;
+//			  in_range_count=0;
+//		  }
+//		  else{                     //??��?��?る時間�???��?��計測
+//			  out_range_count=0;
+//			  in_range_count++;
+//			  if (in_range_count>10){ //滞在時間の設??��?��?
+//				  clearning_handler= true;
+//			  }
+//		  }
+//
+//		  if(clearning_handler== true && out_range_count > 5){ //??��?��?な??��?��?時間の設??��?��?
+//			  clearning_motion();
+//			  init_motion();
+//			  clearning_handler= false;
+//		  }
+//	  }
 
 
 /*-----------------------Servo test---------------------------*/
@@ -354,11 +418,15 @@ int main(void)
 //	  duty=12;
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,30-duty);
 //	  HAL_Delay(1000);
 //
 //	  duty=21;
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,30-duty);
 //	  HAL_Delay(1000);
 
 /*-----------------------stepping test-------------------------*/
@@ -388,7 +456,15 @@ int main(void)
 //		  }
 //	  }
 
-
+/*-----------------B3M test-----------------------*/
+//	  write(0xFF,0x00,0x28);
+//	  write(0xFF,0x01,0x29);
+//  	  pos(0x04,9000,1000);
+//  	  HAL_Delay(1000);
+//  	  pos(0x04,0,1000);
+//  	  HAL_Delay(1000);
+//  	  pos(0x04,-9000,1000);
+//  	  HAL_Delay(1000);
 
   }
   /* USER CODE END 3 */
@@ -559,6 +635,69 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 625;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 255;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
 
 }
 
