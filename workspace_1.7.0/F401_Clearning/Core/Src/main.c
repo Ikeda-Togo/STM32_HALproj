@@ -274,43 +274,77 @@ int main(void)
   	  write(0x04,0x00,0x28);
   	  write(0x04,0x01,0x29);
   	  //水平に調整
-  	  pos(0x04,0,1000);
-  	  HAL_Delay(1000);
+  	  pos(0x04,-1500,1000);
+  	  HAL_Delay(2000);
 
   	  //右のアクリル噴�?
-  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,12);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,11);
   	  HAL_Delay(500);
-  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
   	  HAL_Delay(500);
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
-  	  HAL_Delay(1000);
+  	  HAL_Delay(2000);
 
   	  //左アクリルの噴�?
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,24);
   	  HAL_Delay(500);
-  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
   	  HAL_Delay(500);
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
-  	  HAL_Delay(1000);
+  	  HAL_Delay(2000);
+
 
   	  //机に噴�?
+  	  pos(0x04,-1000,1000);
+  	  HAL_Delay(1000);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(500);
+
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,18);
   	  HAL_Delay(500);
-  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
   	  HAL_Delay(500);
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
-  	  HAL_Delay(1000);
+  	  HAL_Delay(500);
+
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,14);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(2000);
 
   	  //中央アクリルに噴�?
-  	  pos(0x04,6000,1000);
+  	  pos(0x04,-4000,1000);
   	  HAL_Delay(1000);
-  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,22);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
   	  HAL_Delay(500);
   	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(500);
+
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,18);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(500);
+
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,14);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,20);
+  	  HAL_Delay(500);
+  	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,12);
+  	  HAL_Delay(2000);
 
   	  //初期位置に戻�?
-  	  pos(0x04,-9000,1000);
-  	  HAL_Delay(1000);
+  	  pos(0x04,14000,4000);
+  	  HAL_Delay(6000);
 
 
     }
@@ -318,13 +352,16 @@ int main(void)
     void clearning_motion(){
 
       printf("clearning motion...\r\n");
+
+      alcohol_motion();
+
       write(0x01,0x04,0x28);
       write(0x02,0x04,0x28);
       write(0x03,0x04,0x28);
       write(0xFF,0x01,0x29);
 
       //モップ回転
-   	  speed(0x01,15000);
+   	  speed(0x01,-15000);
    	  speed(0x02,15000);
    	  speed(0x03,-15000);
 
@@ -333,15 +370,23 @@ int main(void)
   	  HAL_GPIO_WritePin(EN_step_GPIO_Port, EN_step_Pin, 0);
   	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 1);
 
-  	  //??��?��?復ス??��?��???��?��?プ数
-  	  for(int i=0;i<10000;i++){
+  	  //ステッピングモータ往復
+  	  for(int i=0;i<19000;i++){
   		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
   		  delay_us(400);
   	  	  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
   	  	  delay_us(400);
   	  }
+
+      //モップ逆回転
+   	  speed(0x01,15000);
+   	  speed(0x02,-15000);
+   	  speed(0x03,15000);
+
+  	  HAL_Delay(1000);
+
   	  HAL_GPIO_WritePin(GPIOA, DIR_Pin, 0);
-  	  for(int i=0;i<10000;i++){
+  	  for(int i=0;i<19000;i++){
   		  HAL_GPIO_WritePin(GPIOA, Step_Pin, 1);
   		  delay_us(400);
   	  	  HAL_GPIO_WritePin(GPIOA, Step_Pin, 0);
@@ -356,23 +401,28 @@ int main(void)
   	  speed(0xFF,0);
 
   	  //机ふきふき
-  	  duty=12;
-  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+  	  duty=10;
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+  	  HAL_Delay(1000);
+  	  duty=21;
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
   	  HAL_Delay(1000);
 
+  	  duty=10;
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+  	  HAL_Delay(1000);
   	  duty=21;
-  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
   	  HAL_Delay(1000);
 
     }
 
-//  	  write(0xFF,0x04,0x28);
-//  	  write(0xFF,0x01,0x29);
-//  	  speed(0xFF,15000);
 
-//  	init_motion();
+  	init_motion();
 
   /* USER CODE END 2 */
 
@@ -383,51 +433,65 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  alcohol_motion();
+
+//	  alcohol_motion();
 
 
 /*------------------sonic_sense test------------------------*/
 
-//	  while(1){
-//		  int distance = sonic_sense();
-//		  printf("distance=%d\r\n",distance);
-//		  HAL_Delay(500);
-//
-//		  if(distance>5000){         //??��?��?な??��?��?時間の計測
-//			  out_range_count++;
-//			  in_range_count=0;
-//		  }
-//		  else{                     //??��?��?る時間�???��?��計測
-//			  out_range_count=0;
-//			  in_range_count++;
-//			  if (in_range_count>10){ //滞在時間の設??��?��?
-//				  clearning_handler= true;
-//			  }
-//		  }
-//
-//		  if(clearning_handler== true && out_range_count > 5){ //??��?��?な??��?��?時間の設??��?��?
-//			  clearning_motion();
-//			  init_motion();
-//			  clearning_handler= false;
-//		  }
-//	  }
+	  while(1){
+		  int distance = sonic_sense();
+		  printf("distance=%d\r\n",distance);
+		  HAL_Delay(500);
+
+		  if(distance>5000){         //??��?��?な??��?��?時間の計測
+			  out_range_count++;
+			  in_range_count=0;
+		  }
+		  else{                     //??��?��?る時間�???��?��計測
+			  out_range_count=0;
+			  in_range_count++;
+			  if (in_range_count>10){ //滞在時間の設??��?��?
+				  clearning_handler= true;
+			  }
+		  }
+
+		  if(clearning_handler== true && out_range_count > 5){ //??��?��?な??��?��?時間の設??��?��?
+			  clearning_motion();
+			  init_motion();
+			  clearning_handler= false;
+		  }
+	  }
 
 
 /*-----------------------Servo test---------------------------*/
 
+//	  duty=20;
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,duty);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,duty);
+//	  HAL_Delay(1000);
+//
 //	  duty=12;
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
 //	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
 //	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,duty);
-//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,30-duty);
-//	  HAL_Delay(1000);
+//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,duty);
+//	  HAL_Delay(2000);
+
+//  	  for( duty=21;duty>11;duty-=2){
+//  	  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//  	  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//  	  	  HAL_Delay(200);
+//  	  }
+//  	  for( duty=11;duty<=21;duty+=2){
+//  	  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
+//  	  	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
+//  	  	  HAL_Delay(200);
+//  	  }
 //
-//	  duty=21;
-//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,duty);
-//	  __HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_2,30-duty);
-//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_1,duty);
-//	  __HAL_TIM_SET_COMPARE(&htim3,TIM_CHANNEL_2,30-duty);
-//	  HAL_Delay(1000);
+//  	  HAL_Delay(1000);
 
 /*-----------------------stepping test-------------------------*/
 
