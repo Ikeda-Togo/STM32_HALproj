@@ -1,0 +1,15 @@
+main.c:156:8:encoder_read	24	static
+main.c:91:5:main	24	static
+main.c:179:8:axis_state_change	24	static
+main.c:228:7:ctoi	16	static
+main.c:250:7:ftox	64	static
+main.c:270:8:pos_change	32	static
+main.c:459:6:SystemClock_Config	72	static
+main.c:497:13:MX_CAN_Init	8	static
+main.c:534:13:MX_USART2_UART_Init	8	static
+main.c:569:13:MX_GPIO_Init	40	static
+main.c:591:6:HAL_UART_RxCpltCallback	16	static
+main.c:597:5:_write	24	static
+main.c:603:6:HAL_CAN_TxMailbox0CompleteCallback	16	static
+main.c:610:6:HAL_CAN_RxFifo0MsgPendingCallback	48	static
+main.c:644:6:Error_Handler	8	static,ignoring_inline_asm
